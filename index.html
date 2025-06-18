@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D Character Manager - UI Designs</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Character Card Template -->
+    <template id="character-card-template">
+        <div class="character-card">
+            <div class="character-header">
+                <div class="character-name"></div>
+                <div class="character-level"></div>
+            </div>
+            <div class="character-details"></div>
+            <div class="character-stats">
+                <div class="stat">
+                    <div class="stat-label">HP</div>
+                    <div class="stat-value hp-value"></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">AC</div>
+                    <div class="stat-value ac-value"></div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label main-stat-label"></div>
+                    <div class="stat-value main-stat-value"></div>
+                </div>
+            </div>
+            <div class="character-actions">
+                <button class="action-btn edit-btn">Edit</button>
+                <button class="action-btn delete-btn">Delete</button>
+            </div>
+        </div>
+    </template>
+
+    <div class="design-container">
+        <!-- Character List Screen -->
+        <div id="character-list" class="page active">
+            <div class="screen-title">Character List / Management Screen</div>
+            
+            <div class="header">
+                <h1 class="app-title">Sheets and Scrolls</h1>
+                <button class="create-button">
+                    <span>+</span>
+                    Create Character
+                </button>
+            </div>
+
+            <input type="text" class="search-bar" placeholder="Search characters...">
+
+            <div class="character-grid">
+                <!-- Character cards will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Character Sheet Screen -->
+        <div id="character-sheet" class="page">
+            <div class="screen-title">Individual Character Sheet View</div>
+            
+            <div class="sheet-header">
+                <div class="character-info">
+                    <div class="character-avatar">T</div>
+                    <div>
+                        <div class="character-title">Character Name</div>
+                        <div class="character-subtitle">Level X Race Class</div>
+                    </div>
+                </div>
+                <button class="back-btn" onclick="goBack()">← Back to Characters</button>
+            </div>
+
+            <div class="sheet-content">
+                <div class="left-column">
+                    <div class="sheet-section">
+                        <div class="section-title">Ability Scores</div>
+                        <div class="ability-scores">
+                            <!-- Ability scores will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="sheet-section">
+                        <div class="section-title">Skills</div>
+                        <div class="skills-list">
+                            <!-- Skills will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="right-column">
+                    <div class="sheet-section">
+                        <div class="section-title">Combat Stats</div>
+                        <div class="combat-stats">
+                            <!-- Combat stats will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="sheet-section">
+                        <div class="section-title">Equipment</div>
+                        <div class="equipment-list">
+                            <!-- Equipment will be dynamically inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="sheet-section">
+                        <div class="section-title">Notes & Background</div>
+                        <textarea class="textarea-field" placeholder="Character background, notes, and story details..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="js/data.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
