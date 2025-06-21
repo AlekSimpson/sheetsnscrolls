@@ -97,13 +97,14 @@ body {
     color: #e5e7eb;
     font-size: 14px;
     margin-bottom: 24px;
+    margin-left: 4px;
 }
 
 .character-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 400px));
     gap: 20px;
-    padding: 20px;
+    padding: 0 4px;
 }
 
 .character-card {
@@ -115,6 +116,7 @@ body {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    max-width: 400px;
 }
 
 .character-card::before {
@@ -466,5 +468,78 @@ body {
 
     .search-bar {
         width: 100%;
+    }
+}
+
+/* Editable elements styling */
+.editable-name {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.editable-name:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.editable-name:hover::after {
+    content: "Click to edit";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #e5e7eb;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.editable-hp {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.editable-hp:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.editable-hp:hover::after {
+    content: "Click to edit";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #e5e7eb;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Input field styling when editing */
+input[type="text"]:focus,
+input[type="number"]:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive editable elements */
+@media (max-width: 480px) {
+    .editable-name:hover::after,
+    .editable-hp:hover::after {
+        display: none; /* Hide tooltips on mobile */
     }
 }

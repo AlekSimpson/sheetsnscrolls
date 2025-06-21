@@ -6,25 +6,24 @@ import (
 	"net/http"
 )
 
+var id_counter int = 0
+func assign_id() int {
+	next := id_counter
+	id_counter+=1
+	return next
+}
+
 var characters = []Character{
-	{
-		0,
-		"Thorin Ironbeard",
-		5,
-		fighter,
-		dwarf,
-		AbilityScores{16, 12, 15, 10, 13, 14},
-		CombatStats{52, 52, 18, 30},
-		[]Item{},
-		map[string]int{},
-		"default background",
-	},
+	create_character("Thorin Ironbeard", "fighter", "dwarf", "A fallen soldier who fled the battlefield"),
 }
 
 func users_handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+    w.Header().Set("Pragma", "no-cache")
+    w.Header().Set("Expires", "0")
 
 	switch r.Method {
 	case "GET":
@@ -70,6 +69,6 @@ func main() {
 	http.HandleFunc("/characters", users_handler)
 	// http.HandleFunc("/user/", user_handler)
 
-	fmt.Println("API server running on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Println("API server running on https://localhost:8080")
+	http.ListenAndServeTLS(":8080", "./localhost+1.pem", "./localhost+1-key.pem", nil)
 }
