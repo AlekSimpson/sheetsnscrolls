@@ -162,3 +162,8 @@ func create_character(name string, class string, race string, background string)
 		Background: background,
 	}
 }
+
+type PostRequest struct {
+	Mode string 	  `json:"mode"`
+	Content Character `json:"content"`
+}

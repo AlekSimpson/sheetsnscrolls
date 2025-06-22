@@ -43,7 +43,40 @@ function viewCharacter(characterId) {
 
 // Back button handler
 function goBack() {
+    renderCharacterCards(); // Update character cards with any changes
     showPage('character-list');
+}
+
+// Helper function to style editable input elements
+function styleEditableInput(input, options = {}) {
+    // Set default styles
+    input.style.border = '2px solid rgba(255, 255, 255, 0.2)';
+    input.style.borderRadius = '6px';
+    input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    input.style.color = 'inherit';
+    input.style.fontSize = 'inherit';
+    input.style.fontWeight = 'inherit';
+    input.style.fontFamily = 'inherit';
+    input.style.outline = 'none';
+    input.style.transition = 'all 0.2s ease';
+    
+    // Apply custom options
+    if (options.width) input.style.width = options.width;
+    if (options.textAlign) input.style.textAlign = options.textAlign;
+    if (options.padding) input.style.padding = options.padding;
+    if (options.minWidth) input.style.minWidth = options.minWidth;
+    
+    // Add focus styling
+    input.addEventListener('focus', () => {
+        input.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+        input.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+    });
+    
+    // Add blur styling
+    input.addEventListener('blur', () => {
+        input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+    });
 }
 
 // HP editing functionality
@@ -56,23 +89,12 @@ function editHP(element) {
     input.type = 'number';
     input.value = currentValue;
     input.min = '0';
-    input.style.width = '50px';
-    input.style.textAlign = 'center';
-    input.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-    input.style.borderRadius = '6px';
-    input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    input.style.color = 'inherit';
-    input.style.fontSize = 'inherit';
-    input.style.fontWeight = 'inherit';
-    input.style.fontFamily = 'inherit';
-    input.style.padding = '2px 4px';
-    input.style.outline = 'none';
-    input.style.transition = 'all 0.2s ease';
     
-    // Add focus styling
-    input.addEventListener('focus', () => {
-        input.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-        input.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+    // Apply styling
+    styleEditableInput(input, {
+        width: '50px',
+        textAlign: 'center',
+        padding: '2px 4px'
     });
     
     // Replace the span with input
@@ -87,7 +109,7 @@ function editHP(element) {
         
         if (character) {
             // Update the character data
-            character.combat_skills.hp = newValue;
+            character.update_combat_skills("hp", newValue);
             
             // Create new span with updated value
             const newSpan = document.createElement('span');
@@ -117,14 +139,8 @@ function editHP(element) {
         }
     });
     
-    // Combined blur handler for both styling and saving
-    input.addEventListener('blur', () => {
-        // Reset styling
-        input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        // Save the value
-        saveHP();
-    });
+    // Save on blur (handled by the helper function for styling)
+    input.addEventListener('blur', saveHP);
 }
 
 // Name editing functionality
@@ -136,24 +152,13 @@ function editName(element) {
     const input = document.createElement('input');
     input.type = 'text';
     input.value = currentValue;
-    input.style.width = '250px';
-    input.style.textAlign = 'left';
-    input.style.border = '2px solid rgba(255, 255, 255, 0.2)';
-    input.style.borderRadius = '6px';
-    input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-    input.style.color = 'inherit';
-    input.style.fontSize = 'inherit';
-    input.style.fontWeight = 'inherit';
-    input.style.fontFamily = 'inherit';
-    input.style.padding = '4px 8px';
-    input.style.outline = 'none';
-    input.style.transition = 'all 0.2s ease';
-    input.style.minWidth = '200px';
     
-    // Add focus styling
-    input.addEventListener('focus', () => {
-        input.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-        input.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+    // Apply styling
+    styleEditableInput(input, {
+        width: '250px',
+        textAlign: 'left',
+        padding: '4px 8px',
+        minWidth: '200px'
     });
     
     // Replace the span with input
@@ -179,7 +184,8 @@ function editName(element) {
         
         if (character) {
             // Update the character data
-            character.name = newValue;
+            // character.update_name(newValue);
+            character.update_base("name", newValue);
             
             // Update the avatar with the new first letter
             const avatarElement = document.querySelector('.character-avatar');
@@ -218,14 +224,8 @@ function editName(element) {
         }
     });
     
-    // Combined blur handler for both styling and saving
-    input.addEventListener('blur', () => {
-        // Reset styling
-        input.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-        input.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        // Save the value
-        saveName();
-    });
+    // Save on blur (handled by the helper function for styling)
+    input.addEventListener('blur', saveName);
 }
 
 // Render character cards using template
@@ -325,6 +325,7 @@ function loadCharacterData(characterId) {
     if (character.combat_skills) {
         const combat_skills = document.querySelector('.combat-stats');
         combat_skills.innerHTML = Object.entries(character.combat_skills)
+            .filter(([stat, value]) => stat !== 'max_hp') // Filter out max_hp because it's already bundled in with the hp (eg: {{hp}}/{{max_hp}})
             .map(([stat, value]) => `
                 <div class="combat-stat">
                     <div class="combat-stat-value">
@@ -332,7 +333,7 @@ function loadCharacterData(characterId) {
                             `<span class="editable-hp" data-character-id="${character.id}" onclick="editHP(this)">${value}</span>/${character.combat_skills.max_hp}` 
                             : value}
                     </div>
-                    <div class="combat-stat-label">${stat === 'hp' ? 'Hit Points' : stat === 'ac' ? 'Armor Class' : 'Speed'}</div>
+                    <div class="combat-stat-label">${stat === 'hp' ? 'Hit Points' : stat === 'ac' ? 'Armor Class' : stat.charAt(0).toUpperCase() + stat.slice(1)}</div>
                 </div>
             `).join('');
     }
@@ -355,10 +356,59 @@ function loadCharacterData(characterId) {
     }
 
     // Update background if it exists
-    if (character.background) {
-        const backgroundTextarea = document.querySelector('.textarea-field');
-        if (backgroundTextarea) {
-            backgroundTextarea.value = character.background;
+    const backgroundTextarea = document.querySelector('.textarea-field');
+    if (backgroundTextarea) {
+        backgroundTextarea.value = character.background || '';
+        
+        // Add dataset to identify which character this textarea belongs to
+        backgroundTextarea.dataset.characterId = character.id;
+        
+        // Remove existing event listeners to avoid duplicates
+        backgroundTextarea.removeEventListener('blur', handleBackgroundSave);
+        backgroundTextarea.removeEventListener('input', handleBackgroundInput);
+        
+        // Add event listeners for saving background changes
+        backgroundTextarea.addEventListener('blur', handleBackgroundSave);
+        backgroundTextarea.addEventListener('input', handleBackgroundInput);
+        
+        // Store original value for comparison
+        backgroundTextarea.dataset.originalValue = character.background || '';
+    }
+}
+
+// Background/notes saving functionality
+let backgroundSaveTimeout;
+
+function handleBackgroundInput(event) {
+    // Clear existing timeout
+    if (backgroundSaveTimeout) {
+        clearTimeout(backgroundSaveTimeout);
+    }
+    
+    // Set a timeout to save after user stops typing (debounce)
+    backgroundSaveTimeout = setTimeout(() => {
+        handleBackgroundSave(event);
+    }, 2000); // Save after 2 seconds of no input
+}
+
+async function handleBackgroundSave(event) {
+    const textarea = event.target;
+    const characterId = textarea.dataset.characterId;
+    const newValue = textarea.value;
+    const originalValue = textarea.dataset.originalValue;
+    
+    // Only save if the value has actually changed
+    if (newValue !== originalValue) {
+        const character = characters.find(c => c.id == characterId);
+        
+        if (character) {
+            // Update the character data
+            character.update_base("background", newValue);
+            
+            // Update the stored original value
+            textarea.dataset.originalValue = newValue;
+            
+            console.log('Background saved successfully');
         }
     }
 }
@@ -396,14 +446,30 @@ function handleSkillsSearch(event) {
     });
 }
 
+// Capture Ctrl+F/Cmd+F to focus skills search
+function handleFindKeyShortcut(event) {
+    const isCtrlF = (event.ctrlKey || event.metaKey) && event.key === 'f';
+    const isOnCharacterSheet = document.getElementById('character-sheet').classList.contains('active');
+    
+    if (isCtrlF && isOnCharacterSheet) {
+        event.preventDefault(); // Prevent browser's default find dialog
+        
+        const skillsSearchBar = document.getElementById('skills-search');
+        if (skillsSearchBar) {
+            skillsSearchBar.focus();
+            skillsSearchBar.select(); // Select all text in the search bar
+        }
+    }
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
-    fetch("https://localhost:8080/characters")
+    fetch("http://localhost:8080/characters")
         .then(response => {
             return response.json();
         })
         .then(data => { 
-            characters = data
+            characters = data.map(x => Character.from_json(JSON.stringify(x)))
             console.log(characters)
             renderCharacterCards();
          })
@@ -423,4 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (skillsSearchBar) {
         skillsSearchBar.addEventListener('input', handleSkillsSearch);
     }
+
+    // Add keyboard shortcut handler for Ctrl+F/Cmd+F
+    document.addEventListener('keydown', handleFindKeyShortcut);
 });

@@ -1,0 +1,46 @@
+[
+  {
+    "id": 0,
+    "name": "Thorin Ironbeard",
+    "level": 1,
+    "class": "fighter",
+    "hitdice": 10,
+    "race": "dwarf",
+    "abilities": {
+      "strength": 14,
+      "dexterity": 18,
+      "constitution": 10,
+      "intelligence": 11,
+      "wisdom": 14,
+      "charisma": 16
+    },
+    "combat_skills": {
+      "hp": 10,
+      "max_hp": 10,
+      "ac": 14,
+      "speed": 30
+    },
+    "equipment": [],
+    "skills": {
+      "acrobatics": 18,
+      "animal_handling": 0,
+      "arcana": 11,
+      "athletics": 14,
+      "deception": 16,
+      "history": 11,
+      "insight": 14,
+      "intimidation": 16,
+      "investigation": 11,
+      "medicine": 14,
+      "nature": 11,
+      "perception": 14,
+      "performance": 16,
+      "persuasion": 16,
+      "religion": 11,
+      "slight_of_hand": 0,
+      "stealth": 18,
+      "survival": 14
+    },
+    "background": "A fallen soldier who fled the battlefield\n\n"
+  }
+]
