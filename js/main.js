@@ -313,6 +313,12 @@ function loadCharacterData(characterId) {
                     </div>
                 `;
             }).join('');
+        
+        // Clear any existing search
+        const skillsSearchBar = document.getElementById('skills-search');
+        if (skillsSearchBar) {
+            skillsSearchBar.value = '';
+        }
     }
 
     // Update combat stats if they exist
@@ -357,6 +363,39 @@ function loadCharacterData(characterId) {
     }
 }
 
+// Skills search functionality
+function handleSkillsSearch(event) {
+    const searchTerm = event.target.value.toLowerCase();
+    const skillItems = document.querySelectorAll('.skill-item');
+    
+    skillItems.forEach(skillItem => {
+        const skillName = skillItem.querySelector('.skill-name');
+        const skillText = skillName.textContent.toLowerCase();
+        
+        // Reset any existing highlighting
+        skillName.innerHTML = skillName.textContent;
+        
+        if (searchTerm === '') {
+            // Show all items when search is empty
+            skillItem.style.display = 'flex';
+            skillItem.style.opacity = '1';
+        } else if (skillText.includes(searchTerm)) {
+            // Show and highlight matching items
+            skillItem.style.display = 'flex';
+            skillItem.style.opacity = '1';
+            
+            // Highlight the matching text
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            const highlightedText = skillName.textContent.replace(regex, '<span style="background-color: rgba(251, 191, 36, 0.3); color: #fbbf24; padding: 1px 2px; border-radius: 2px;">$1</span>');
+            skillName.innerHTML = highlightedText;
+        } else {
+            // Hide non-matching items
+            skillItem.style.display = 'flex';
+            skillItem.style.opacity = '0.3';
+        }
+    });
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     fetch("https://localhost:8080/characters")
@@ -377,5 +416,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const backButton = document.querySelector('.back-btn');
     if (backButton) {
         backButton.addEventListener('click', goBack);
+    }
+
+    // Add skills search functionality
+    const skillsSearchBar = document.getElementById('skills-search');
+    if (skillsSearchBar) {
+        skillsSearchBar.addEventListener('input', handleSkillsSearch);
     }
 });

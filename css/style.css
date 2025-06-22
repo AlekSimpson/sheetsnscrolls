@@ -303,13 +303,43 @@ body {
     padding: 20px;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
 .section-title {
     font-size: 16px;
     font-weight: 600;
     color: #f8fafc;
-    margin-bottom: 16px;
     border-bottom: 2px solid #475569;
     padding-bottom: 8px;
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.skills-search-bar {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 6px 10px;
+    width: 150px;
+    color: #e5e7eb;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.skills-search-bar:focus {
+    outline: none;
+    border-color: #fbbf24;
+    background: rgba(15, 23, 42, 0.8);
+}
+
+.skills-search-bar::placeholder {
+    color: #64748b;
 }
 
 .ability-scores {

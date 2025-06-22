@@ -17,7 +17,7 @@ var characters = []Character{
 	create_character("Thorin Ironbeard", "fighter", "dwarf", "A fallen soldier who fled the battlefield"),
 }
 
-func users_handler(w http.ResponseWriter, r *http.Request) {
+func characters_handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
@@ -41,33 +41,8 @@ func users_handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//func user_handler(w http.ResponseWriter, r *http.Request) {
-//	path_parts := strings.Split(r.URL.Path, "/")
-//	if len(path_parts) < 3 {
-//		http.NotFound(w, r)
-//		return
-//	}
-//
-//	id, err := strconv.Atoi(path_parts[2])
-//	if err != nil {
-//		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-//		return
-//	}
-//
-//	for _, character := range characters {
-//		if character.Id == id {
-//			w.Header().Set("Content-Type", "application/json")
-//			json.NewEncoder(w).Encode(character)
-//			return
-//		}
-//	}
-//
-//	http.NotFound(w, r)
-//}
-
 func main() {
-	http.HandleFunc("/characters", users_handler)
-	// http.HandleFunc("/user/", user_handler)
+	http.HandleFunc("/characters", characters_handler)
 
 	fmt.Println("API server running on https://localhost:8080")
 	http.ListenAndServeTLS(":8080", "./localhost+1.pem", "./localhost+1-key.pem", nil)
