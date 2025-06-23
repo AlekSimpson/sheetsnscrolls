@@ -241,6 +241,12 @@ function renderCharacterCards() {
     // Clear existing cards
     characterGrid.innerHTML = '';
 
+    // Clear character search bar
+    const characterSearchBar = document.querySelector('.search-bar');
+    if (characterSearchBar) {
+        characterSearchBar.value = '';
+    }
+
     // Create and populate cards for each character
     Object.values(characters).forEach(character => {
         // Clone the template
@@ -452,6 +458,191 @@ function handleSkillsSearch(event) {
             skillItem.style.opacity = '0.3';
         }
     });
+}
+
+// Character search functionality
+function handleCharacterSearch(event) {
+    const searchTerm = event.target.value.toLowerCase().trim();
+    const characterGrid = document.querySelector('.character-grid');
+    
+    if (!characterGrid) return;
+    
+    // Remove any existing no-results message
+    const existingNoResults = document.querySelector('.no-results-message');
+    if (existingNoResults) {
+        existingNoResults.remove();
+    }
+    
+    if (searchTerm === '') {
+        // If search is empty, restore original order and show all characters
+        renderCharacterCards();
+        return;
+    }
+    
+    // Calculate relevance scores for each character
+    const scoredCharacters = Object.values(characters).map(character => {
+        const score = calculateSearchScore(character, searchTerm);
+        return { character, score };
+    });
+    
+    // Sort by score (highest first), then by name for ties
+    scoredCharacters.sort((a, b) => {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        return a.character.name.localeCompare(b.character.name);
+    });
+    
+    // Clear the grid
+    characterGrid.innerHTML = '';
+    
+    // Check if we have any matches
+    const hasMatches = scoredCharacters.some(item => item.score > 0);
+    
+    if (!hasMatches) {
+        // Show no results message
+        const noResultsMessage = document.createElement('div');
+        noResultsMessage.className = 'no-results-message';
+        noResultsMessage.style.cssText = `
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-size: 16px;
+            font-style: italic;
+        `;
+        noResultsMessage.textContent = `No characters found matching "${event.target.value}"`;
+        characterGrid.appendChild(noResultsMessage);
+        return;
+    }
+    
+    // Re-render cards in sorted order
+    const template = document.getElementById('character-card-template');
+    if (!template) return;
+    
+    scoredCharacters.forEach(({ character, score }) => {
+        // Clone the template
+        const card = template.content.cloneNode(true);
+        
+        // Set data attribute for identification
+        card.querySelector('.character-card').dataset.characterId = character.id;
+        
+        // Fill in the character data with highlighting
+        const nameElement = card.querySelector('.character-name');
+        nameElement.innerHTML = highlightSearchTerm(character.name, searchTerm);
+        
+        card.querySelector('.character-level').textContent = `Level ${character.level}`;
+        
+        // Highlight matches in details
+        const detailsText = `${character.race} • ${character.class} • ${character.background}`;
+        card.querySelector('.character-details').innerHTML = highlightSearchTerm(detailsText, searchTerm);
+        
+        // Fill in stats
+        card.querySelector('.hp-value').textContent = `${character.combat_skills.hp}/${character.combat_skills.max_hp}`;
+        card.querySelector('.ac-value').textContent = character.combat_skills.ac;
+        card.querySelector('.main-stat-label').textContent = 'Speed';
+        card.querySelector('.main-stat-value').textContent = character.combat_skills.speed;
+        
+        // Apply visual feedback based on score
+        const cardElement = card.querySelector('.character-card');
+        if (score === 0) {
+            // Low relevance - fade out
+            cardElement.style.opacity = '0.3';
+            cardElement.style.transform = 'scale(0.95)';
+        } else if (score >= 100) {
+            // High relevance - highlight
+            cardElement.style.opacity = '1';
+            cardElement.style.transform = 'scale(1)';
+            cardElement.style.boxShadow = '0 0 0 2px rgba(251, 191, 36, 0.3)';
+        } else {
+            // Medium relevance - normal
+            cardElement.style.opacity = '1';
+            cardElement.style.transform = 'scale(1)';
+        }
+        
+        // Add click handler for the card (view character)
+        cardElement.addEventListener('click', (e) => {
+            // Don't trigger if clicking on action buttons
+            if (e.target.classList.contains('action-btn')) return;
+            viewCharacter(character.id);
+        });
+        
+        // Add click handler for delete button
+        card.querySelector('.delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click event
+            deleteCharacter(character.id);
+        });
+        
+        // Add the card to the grid
+        characterGrid.appendChild(card);
+    });
+}
+
+// Calculate search relevance score for a character
+function calculateSearchScore(character, searchTerm) {
+    let score = 0;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    
+    // Name scoring (highest weight)
+    const name = character.name.toLowerCase();
+    if (name === lowerSearchTerm) {
+        score += 1000; // Exact match
+    } else if (name.startsWith(lowerSearchTerm)) {
+        score += 500; // Starts with search term
+    } else if (name.includes(lowerSearchTerm)) {
+        score += 200; // Contains search term
+        // Bonus for earlier position in name
+        const position = name.indexOf(lowerSearchTerm);
+        score += Math.max(0, 50 - position * 5);
+    }
+    
+    // Class scoring (high weight)
+    const characterClass = character.class.toLowerCase();
+    if (characterClass === lowerSearchTerm) {
+        score += 300;
+    } else if (characterClass.startsWith(lowerSearchTerm)) {
+        score += 150;
+    } else if (characterClass.includes(lowerSearchTerm)) {
+        score += 75;
+    }
+    
+    // Race scoring (medium weight)
+    const race = character.race.toLowerCase();
+    if (race === lowerSearchTerm) {
+        score += 200;
+    } else if (race.startsWith(lowerSearchTerm)) {
+        score += 100;
+    } else if (race.includes(lowerSearchTerm)) {
+        score += 50;
+    }
+    
+    // Background scoring (lower weight)
+    const background = character.background.toLowerCase();
+    if (background === lowerSearchTerm) {
+        score += 100;
+    } else if (background.startsWith(lowerSearchTerm)) {
+        score += 50;
+    } else if (background.includes(lowerSearchTerm)) {
+        score += 25;
+    }
+    
+    // Level scoring (special case)
+    const levelString = `level ${character.level}`;
+    const levelMatch = levelString.includes(lowerSearchTerm) || 
+                      character.level.toString().includes(lowerSearchTerm);
+    if (levelMatch) {
+        score += 75;
+    }
+    
+    return score;
+}
+
+// Highlight search term in text
+function highlightSearchTerm(text, searchTerm) {
+    if (!searchTerm) return text;
+    
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<span style="background-color: rgba(251, 191, 36, 0.3); color: #fbbf24; padding: 1px 2px; border-radius: 2px;">$1</span>');
 }
 
 // Capture Ctrl+F/Cmd+F to focus skills search
@@ -704,6 +895,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const skillsSearchBar = document.getElementById('skills-search');
     if (skillsSearchBar) {
         skillsSearchBar.addEventListener('input', handleSkillsSearch);
+    }
+
+    // Add character search functionality
+    const characterSearchBar = document.querySelector('.search-bar');
+    if (characterSearchBar) {
+        characterSearchBar.addEventListener('input', handleCharacterSearch);
     }
 
     // Add keyboard shortcut handler for Ctrl+F/Cmd+F

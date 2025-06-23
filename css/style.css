@@ -230,6 +230,7 @@ body {
     right: 0;
     height: 4px;
     background: linear-gradient(90deg, #dc2626, #ea580c, #d97706, #059669);
+    border-radius: 16px 16px 0 0;
 }
 
 .character-card:hover {
