@@ -10,38 +10,49 @@ import (
 	"syscall"
 )
 
+
+// var characters []Character
+var characters map[int]Character
 var id_counter int = 0
 func assign_id() int {
 	next := id_counter
-	id_counter+=1
+	for true {
+		id_counter+=1
+		_, exists := characters[next]
+		if exists {
+			continue
+		}
+		break
+	}
 	return next
 }
 
-var characters []Character
-
-//var characters = []Character{
-//	create_character("Thorin Ironbeard", "fighter", "dwarf", "A fallen soldier who fled the battlefield"),
-//}
-
 func process_post_request(request_body string, w http.ResponseWriter) {
+	var character Character
 	var request PostRequest
 	err := json.Unmarshal([]byte(request_body), &request)
 	if (err != nil) {
 		return
 	}
 
-	if (request.Mode == "create") {
-		var character Character = request.Content
-		character.Id = len(characters) + 1
-		characters = append(characters, character)
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(character)
-	}else if (request.Mode == "update") {
+	switch request.Mode {
+	case "create":
+		character = request.Content
+		character.Id = assign_id()
+		characters[character.Id] = character
+	case "update":
 		id := request.Content.Id
 		characters[id] = request.Content
-	}else {
-		// error
+		character = characters[id]
+	case "create_random":
+		character = create_random_character()
+		characters[character.Id] = character
+	case "delete":
+		delete(characters, request.Character_id)
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(character)
 }
 
 func characters_handler(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +102,8 @@ func load_saved_data() bool {
 	if (err != nil) {
 		return false
 	}
+
+	id_counter = len(characters)
 	return true
 }
 
@@ -120,3 +133,4 @@ func main() {
 
 	save_character_data()
 }
+

@@ -1,4 +1,4 @@
-var characters = []
+var characters = {}
 
 // Navigation functionality
 function showPage(pageId) {
@@ -105,7 +105,7 @@ function editHP(element) {
     // Handle saving the value
     function saveHP() {
         const newValue = parseInt(input.value) || 0;
-        const character = characters.find(c => c.id == characterId);
+        const character = characters[characterId];
         
         if (character) {
             // Update the character data
@@ -180,7 +180,7 @@ function editName(element) {
             return;
         }
         
-        const character = characters.find(c => c.id == characterId);
+        const character = characters[characterId];
         
         if (character) {
             // Update the character data
@@ -242,7 +242,7 @@ function renderCharacterCards() {
     characterGrid.innerHTML = '';
 
     // Create and populate cards for each character
-    characters.forEach(character => {
+    Object.values(characters).forEach(character => {
         // Clone the template
         const card = template.content.cloneNode(true);
         
@@ -261,9 +261,17 @@ function renderCharacterCards() {
         card.querySelector('.main-stat-label').textContent = 'Speed'
         card.querySelector('.main-stat-value').textContent = character.combat_skills.speed
         
-        // Add click handler
-        card.querySelector('.character-card').addEventListener('click', () => {
+        // Add click handler for the card (view character)
+        card.querySelector('.character-card').addEventListener('click', (e) => {
+            // Don't trigger if clicking on action buttons
+            if (e.target.classList.contains('action-btn')) return;
             viewCharacter(character.id);
+        });
+        
+        // Add click handler for delete button
+        card.querySelector('.delete-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click event
+            deleteCharacter(character.id);
         });
         
         // Add the card to the grid
@@ -273,7 +281,7 @@ function renderCharacterCards() {
 
 // Load character data for the character sheet
 function loadCharacterData(characterId) {
-    const character = characters.find(c => c.id === characterId);
+    const character = characters[characterId];
     if (!character) return;
 
     // Update character info - make name editable
@@ -399,7 +407,7 @@ async function handleBackgroundSave(event) {
     
     // Only save if the value has actually changed
     if (newValue !== originalValue) {
-        const character = characters.find(c => c.id == characterId);
+        const character = characters[characterId];
         
         if (character) {
             // Update the character data
@@ -462,6 +470,211 @@ function handleFindKeyShortcut(event) {
     }
 }
 
+// Dropdown functionality
+let dropdownActive = false;
+
+function toggleCreateDropdown() {
+    const button = document.getElementById('create-button');
+    const dropdown = document.getElementById('create-dropdown');
+    
+    dropdownActive = !dropdownActive;
+    
+    if (dropdownActive) {
+        button.classList.add('active');
+        dropdown.classList.add('active');
+    } else {
+        button.classList.remove('active');
+        dropdown.classList.remove('active');
+    }
+}
+
+function closeDropdown() {
+    const button = document.getElementById('create-button');
+    const dropdown = document.getElementById('create-dropdown');
+    
+    dropdownActive = false;
+    button.classList.remove('active');
+    dropdown.classList.remove('active');
+}
+
+// Random character generation
+function generateRandomCharacter() {
+    // Request the server to create a random character
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            "mode": "create_random"
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            // If successful, fetch the updated character list
+            return fetch("http://localhost:8080/characters");
+        } else {
+            throw new Error('Failed to create random character');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the characters map with fresh data from server
+        characters = {};
+        Object.values(data).forEach(characterData => {
+            const character = Character.from_json(JSON.stringify(characterData));
+            characters[character.id] = character;
+        });
+        console.log('Characters refreshed after random creation:', characters);
+        // Re-render character cards
+        renderCharacterCards();
+        // Close dropdown
+        closeDropdown();
+    })
+    .catch(error => {
+        console.error('Error creating random character:', error);
+        // Close dropdown even on error
+        closeDropdown();
+    });
+}
+
+// Delete character functionality
+function deleteCharacter(characterId) {
+    // Confirm deletion with user
+    const character = characters[characterId];
+    if (!character) return;
+    
+    const confirmDelete = confirm(`Are you sure you want to delete ${character.name}? This action cannot be undone.`);
+    if (!confirmDelete) return;
+    
+    // Send delete request to server
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            "mode": "delete",
+            "character_id": characterId
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            // If successful, fetch the updated character list
+            return fetch("http://localhost:8080/characters");
+        } else {
+            throw new Error('Failed to delete character');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the characters map with fresh data from server
+        characters = {};
+        Object.values(data).forEach(characterData => {
+            const character = Character.from_json(JSON.stringify(characterData));
+            characters[character.id] = character;
+        });
+        console.log('Characters refreshed after deletion:', characters);
+        // Re-render character cards
+        renderCharacterCards();
+    })
+    .catch(error => {
+        console.error('Error deleting character:', error);
+        alert('Failed to delete character. Please try again.');
+    });
+}
+
+function createCharacterOnServer(character) {
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            "mode": "create", 
+            "content": character 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Character created:', data);
+        // Add the new character to our local map
+        const newCharacter = Character.from_json(JSON.stringify(data));
+        characters[newCharacter.id] = newCharacter;
+        // Re-render character cards
+        renderCharacterCards();
+        // Close dropdown
+        closeDropdown();
+    })
+    .catch(error => {
+        console.error('Error creating character:', error);
+    });
+}
+
+// File import functionality
+let selectedFile = null;
+
+function showFileImportModal() {
+    const modal = document.getElementById('file-import-modal');
+    modal.classList.add('active');
+}
+
+function hideFileImportModal() {
+    const modal = document.getElementById('file-import-modal');
+    modal.classList.remove('active');
+    selectedFile = null;
+    
+    // Reset file input
+    const fileInput = document.getElementById('file-input');
+    fileInput.value = '';
+    
+    // Disable import button
+    const importButton = document.getElementById('import-selected');
+    importButton.disabled = true;
+}
+
+function handleFileSelection(event) {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/json') {
+        selectedFile = file;
+        
+        // Update UI to show selected file
+        const fileList = document.getElementById('file-list');
+        fileList.innerHTML = `
+            <div class="file-item selected">
+                <span class="file-icon">📄</span>
+                <span class="file-name">${file.name}</span>
+            </div>
+        `;
+        
+        // Enable import button
+        const importButton = document.getElementById('import-selected');
+        importButton.disabled = false;
+    }
+}
+
+function importCharacterFromFile() {
+    if (!selectedFile) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const characterData = JSON.parse(e.target.result);
+            const character = new Character(characterData);
+            
+            // Send to server
+            createCharacterOnServer(character);
+            
+            // Close modal
+            hideFileImportModal();
+        } catch (error) {
+            console.error('Error parsing character file:', error);
+            alert('Error: Invalid character file format');
+        }
+    };
+    reader.readAsText(selectedFile);
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     fetch("http://localhost:8080/characters")
@@ -469,8 +682,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => { 
-            characters = data.map(x => Character.from_json(JSON.stringify(x)))
-            console.log(characters)
+            characters = {};
+            Object.values(data).forEach(characterData => {
+                const character = Character.from_json(JSON.stringify(characterData));
+                characters[character.id] = character;
+            });
             renderCharacterCards();
          })
         .catch(error => {
@@ -492,4 +708,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add keyboard shortcut handler for Ctrl+F/Cmd+F
     document.addEventListener('keydown', handleFindKeyShortcut);
+    
+    // Add create button functionality
+    const createButton = document.getElementById('create-button');
+    if (createButton) {
+        createButton.addEventListener('click', toggleCreateDropdown);
+    }
+    
+    // Add dropdown option handlers
+    const createRandomOption = document.getElementById('create-random');
+    if (createRandomOption) {
+        createRandomOption.addEventListener('click', () => {
+            generateRandomCharacter();
+        });
+    }
+    
+    const importCharacterOption = document.getElementById('import-character');
+    if (importCharacterOption) {
+        importCharacterOption.addEventListener('click', () => {
+            closeDropdown();
+            showFileImportModal();
+        });
+    }
+    
+    // Add file import modal handlers
+    const closeFileModal = document.getElementById('close-file-modal');
+    if (closeFileModal) {
+        closeFileModal.addEventListener('click', hideFileImportModal);
+    }
+    
+    const browseFilesButton = document.getElementById('browse-files');
+    if (browseFilesButton) {
+        browseFilesButton.addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+    }
+    
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) {
+        fileInput.addEventListener('change', handleFileSelection);
+    }
+    
+    const importSelectedButton = document.getElementById('import-selected');
+    if (importSelectedButton) {
+        importSelectedButton.addEventListener('click', importCharacterFromFile);
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (event) => {
+        const createContainer = document.querySelector('.create-container');
+        if (createContainer && !createContainer.contains(event.target) && dropdownActive) {
+            closeDropdown();
+        }
+    });
+    
+    // Close modal when clicking outside
+    const fileModal = document.getElementById('file-import-modal');
+    if (fileModal) {
+        fileModal.addEventListener('click', (event) => {
+            if (event.target === fileModal) {
+                hideFileImportModal();
+            }
+        });
+    }
 });

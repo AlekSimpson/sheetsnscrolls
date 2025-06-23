@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"slices"
+	"math"
 )
 
 var default_hitdice = map[string]int{
@@ -31,37 +32,7 @@ type AbilityScores struct {
 	Charisma     int `json:"charisma"`
 }
 
-func roll_abilities() AbilityScores {
-	rolld6 := func() int {
-		rand.Seed(time.Now().UnixNano())
-		return rand.Intn(6) + 1
-	}
 
-	roll_ability := func() int {
-		rolls := []int{}
-		for range 4 {
-			rolls = append(rolls, rolld6())
-		}
-
-		slices.Sort(rolls)
-
-		kept_rolls := rolls[1:]
-		score := 0
-		for _, value := range kept_rolls {
-			score += value
-		}
-		return score
-	}
-
-	return AbilityScores{
-		Strength: roll_ability(),
-		Dexterity: roll_ability(),
-		Constitution: roll_ability(),
-		Intelligence: roll_ability(), 
-		Wisdom: roll_ability(),
-		Charisma: roll_ability(),
-	}
-}
 
 func (a AbilityScores) modifier(ability string) int {
 	var score int
@@ -91,19 +62,6 @@ type CombatStats struct {
 	Speed             int `json:"speed"`
 }
 
-func generate_combat_stats(class string, level int, abilities AbilityScores) CombatStats {
-	hitdice := default_hitdice[class]
-	hp := int((hitdice + (level*hitdice) + (2*level) + (2*level*abilities.modifier("constitution")) - 2) / 2)
-	max_hp := hp
-	ac := 10 + abilities.modifier("dex")
-	return CombatStats{
-		Health_points: hp,
-		Max_health_points: max_hp,
-		Armor_class: ac,
-		Speed: 30, // TODO: figure out how we want to auto set this
-	}
-}
-
 type Item struct {
 	Name        int `json:"name"`
 	Description string `json:"description"`
@@ -124,6 +82,54 @@ type Character struct {
 }
 
 func create_character(name string, class string, race string, background string) Character {
+	generate_combat_stats := func (class string, level int, abilities AbilityScores) CombatStats {
+		hitdice := default_hitdice[class]
+		hp := int(math.Abs(float64(hitdice + (level*hitdice) + (2*level) + (2*level*abilities.modifier("constitution")) - 2) / 2))
+		if (hp == 0) {
+			hp = 1
+		}
+		max_hp := hp
+		ac := 10 + abilities.modifier("dex")
+		return CombatStats{
+			Health_points: hp,
+			Max_health_points: max_hp,
+			Armor_class: ac,
+			Speed: 30, // TODO: figure out how we want to auto set this
+		}
+	}
+
+	roll_abilities := func () AbilityScores {
+		rolld6 := func() int {
+			rand.Seed(time.Now().UnixNano())
+			return rand.Intn(6) + 1
+		}
+
+		roll_ability := func() int {
+			rolls := []int{}
+			for range 4 {
+				rolls = append(rolls, rolld6())
+			}
+
+			slices.Sort(rolls)
+
+			kept_rolls := rolls[1:]
+			score := 0
+			for _, value := range kept_rolls {
+				score += value
+			}
+			return score
+		}
+
+		return AbilityScores{
+			Strength: roll_ability(),
+			Dexterity: roll_ability(),
+			Constitution: roll_ability(),
+			Intelligence: roll_ability(), 
+			Wisdom: roll_ability(),
+			Charisma: roll_ability(),
+		}
+	}
+
 	level := 1
 	abilities := roll_abilities()
 	combat := generate_combat_stats(class, level, abilities)
@@ -163,7 +169,22 @@ func create_character(name string, class string, race string, background string)
 	}
 }
 
+func create_random_character() Character {
+	RACES := []string{"Human", "Elf", "Dwarf", "Halfling", "Dragonborn", "Gnome", "Half-Elf", "Half-Orc", "Tiefling"}
+	CLASSES := []string{"Fighter", "Wizard", "Rogue", "Cleric", "Ranger", "Paladin", "Barbarian", "Bard", "Druid", "Monk", "Sorcerer", "Warlock"}
+	FIRST_NAMES := []string{"Aelindra", "Beiro", "Carric", "Drannor", "Enna", "Galinndan", "Haliath", "Ivellios", "Korfel", "Lamlis", "Mindartis", "Nutae", "Paelynn", "Peren", "Quarion", "Riardon", "Rolen", "Silvyr", "Suhnaal", "Thamior", "Theriatis", "Therivayas", "Vanuath", "Varis"}
+	LAST_NAMES := []string{"Amakir", "Amarthen", "Amaeriel", "Aramithare", "Aranala", "Berrian", "Caelynn", "Carric", "Dayereth", "Enna", "Galinndan", "Hadarai", "Haliath", "Helder", "Himo", "Immeral", "Ivellios", "Korfel", "Lamlis", "Laucian", "Mindartis", "Nutae", "Paelynn", "Peren", "Quarion", "Riardon", "Rolen"}
+	BACKGROUNDS := []string{"Acolyte", "Criminal", "Folk Hero", "Noble", "Sage", "Soldier", "Charlatan", "Entertainer", "Guild Artisan", "Hermit", "Outlander", "Sailor"}
+
+	name := FIRST_NAMES[rand.Intn(len(FIRST_NAMES))] + " " + FIRST_NAMES[rand.Intn(len(LAST_NAMES))]
+	class := CLASSES[rand.Intn(len(CLASSES))]
+	race := RACES[rand.Intn(len(RACES))]
+	background := BACKGROUNDS[rand.Intn(len(BACKGROUNDS))]
+	return create_character(name, class, race, background)
+}
+
 type PostRequest struct {
 	Mode string 	  `json:"mode"`
 	Content Character `json:"content"`
+	Character_id int  `json:"character_id"`
 }

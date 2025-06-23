@@ -46,16 +46,30 @@
         <div id="character-list" class="page active">
             <div class="header">
                 <h1 class="app-title">Sheets & Scrolls</h1>
-                <button class="create-button">
-                    <span>+</span>
-                    Create Character
-                </button>
+                <div class="create-container">
+                    <button class="create-button" id="create-button">
+                        <span>+</span>
+                        Create Character
+                    </button>
+                    <div class="create-dropdown" id="create-dropdown">
+                        <div class="dropdown-option" id="create-random">
+                            <span class="option-icon">🎲</span>
+                            <span class="option-text">Random Character</span>
+                        </div>
+                        <div class="dropdown-option" id="import-character">
+                            <span class="option-icon">📂</span>
+                            <span class="option-text">Import from File</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <input type="text" class="search-bar" placeholder="Search characters...">
 
-            <div class="character-grid">
-                <!-- Character cards will be dynamically inserted here -->
+            <div class="character-grid-container">
+                <div class="character-grid">
+                    <!-- Character cards will be dynamically inserted here -->
+                </div>
             </div>
         </div>
 
@@ -110,6 +124,29 @@
                     <div class="sheet-section">
                         <div class="section-title">Notes & Background</div>
                         <textarea class="textarea-field" placeholder="Character background, notes, and story details..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- File Import Modal -->
+        <div id="file-import-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Import Character</h2>
+                    <button class="close-modal" id="close-file-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="file-browser">
+                        <div class="current-path" id="current-path">/</div>
+                        <div class="file-list" id="file-list">
+                            <!-- File system navigation will be populated here -->
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <input type="file" id="file-input" accept=".json" style="display: none;">
+                        <button class="secondary-btn" id="browse-files">Browse Files</button>
+                        <button class="primary-btn" id="import-selected" disabled>Import Selected</button>
                     </div>
                 </div>
             </div>
