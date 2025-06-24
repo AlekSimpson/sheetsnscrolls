@@ -571,50 +571,6 @@
     },
     "background": "Soldier"
   },
-  "8": {
-    "id": 8,
-    "name": "Thamior Silvyr",
-    "level": 1,
-    "class": "Barbarian",
-    "hitdice": 0,
-    "race": "Tiefling",
-    "abilities": {
-      "strength": 16,
-      "dexterity": 16,
-      "constitution": 15,
-      "intelligence": 12,
-      "wisdom": 13,
-      "charisma": 6
-    },
-    "combat_skills": {
-      "hp": 2,
-      "max_hp": 2,
-      "ac": 13,
-      "speed": 30
-    },
-    "equipment": [],
-    "skills": {
-      "acrobatics": 16,
-      "animal handling": 13,
-      "arcana": 12,
-      "athletics": 16,
-      "deception": 6,
-      "history": 12,
-      "insight": 13,
-      "intimidation": 6,
-      "investigation": 12,
-      "medicine": 13,
-      "nature": 12,
-      "perception": 13,
-      "performance": 6,
-      "persuasion": 6,
-      "religion": 12,
-      "slight of hand": 16,
-      "stealth": 16,
-      "survival": 13
-    },
-    "background": "Acolyte"
-  },
   "9": {
     "id": 9,
     "name": "Riardon Riardon",
