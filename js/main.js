@@ -354,19 +354,47 @@ function loadCharacterData(characterId) {
 
     // Update equipment if it exists
     if (character.equipment) {
-        const equipmentSection = document.querySelector('.sheet-section:has(.equipment-item)');
-        if (equipmentSection) {
-            const equipmentList = equipmentSection.querySelector('.equipment-item').parentElement;
-            equipmentList.innerHTML = character.equipment
-                .map(item => `
-                    <div class="equipment-item">
-                        <div>
-                            <div class="item-name">${item.name}</div>
-                            <div class="item-details">${item.details}</div>
-                        </div>
-                    </div>
-                `).join('');
+        console.log('Equipment data found:', character.equipment);
+        console.log('Equipment array length:', character.equipment.length);
+        console.log('Equipment array type:', typeof character.equipment);
+        console.log('Is equipment an array?', Array.isArray(character.equipment));
+        
+        if (Array.isArray(character.equipment) && character.equipment.length > 0) {
+            console.log('First equipment item:', character.equipment[0]);
+            console.log('First equipment item keys:', Object.keys(character.equipment[0]));
         }
+        
+        const equipmentList = document.querySelector('.equipment-list');
+        console.log('Equipment list element:', equipmentList);
+        if (equipmentList) {
+            const equipmentHTML = character.equipment
+                .map((item, idx) => {
+                    return `
+                        <div class="equipment-item modern" data-item-idx="${idx}">
+                            <div class="item-amount-badge-absolute">${item.amount}</div>
+                            <div class="equipment-main-row">
+                                <div class="item-icon-box">
+                                    <span class="item-icon">🗡️</span>
+                                </div>
+                                <div class="item-main-content">
+                                    <div class="item-title-row">
+                                        <span class="item-name">${item.name}</span>
+                                    </div>
+                                    <div class="item-description">${item.description || ''}</div>
+                                    <div class="item-tags">
+                                        ${item.damage ? `<span class="item-tag dmg-tag">DMG ${item.damage}</span>` : ''}
+                                        ${item.notes ? `<span class="item-tag fire-tag">${item.notes}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            console.log('Generated equipment HTML:', equipmentHTML);
+            equipmentList.innerHTML = equipmentHTML;
+        }
+    } else {
+        console.log('No equipment data found for character:', character);
     }
 
     // Update background if it exists
@@ -866,6 +894,133 @@ function importCharacterFromFile() {
     reader.readAsText(selectedFile);
 }
 
+// Equipment modal functionality
+let currentCharacterId = null;
+
+function showAddEquipmentModal() {
+    // Get the current character ID from the character sheet
+    const characterTitle = document.querySelector('.character-title .editable-name');
+    if (characterTitle) {
+        currentCharacterId = characterTitle.dataset.characterId;
+    }
+    
+    if (!currentCharacterId) {
+        console.error('No character selected');
+        return;
+    }
+    
+    const modal = document.getElementById('add-equipment-modal');
+    modal.classList.add('active');
+    
+    // Clear form fields
+    document.getElementById('equipment-name').value = '';
+    document.getElementById('equipment-description').value = '';
+    document.getElementById('equipment-range').value = '';
+    document.getElementById('equipment-hitdie-bonus').value = '';
+    document.getElementById('equipment-amount').value = '';
+    document.getElementById('equipment-damage').value = '';
+    document.getElementById('equipment-notes').value = '';
+    
+    // Focus on the name field
+    document.getElementById('equipment-name').focus();
+}
+
+function hideAddEquipmentModal() {
+    const modal = document.getElementById('add-equipment-modal');
+    modal.classList.remove('active');
+    currentCharacterId = null;
+}
+
+function addEquipmentItem() {
+    const nameInput = document.getElementById('equipment-name');
+    const descriptionInput = document.getElementById('equipment-description');
+    const rangeInput = document.getElementById('equipment-range');
+    const hitdieBonusInput = document.getElementById('equipment-hitdie-bonus');
+    const amountInput = document.getElementById('equipment-amount');
+    const damageInput = document.getElementById('equipment-damage');
+    const notesInput = document.getElementById('equipment-notes');
+    
+    const name = nameInput.value.trim();
+    const description = descriptionInput.value.trim();
+    const range = parseInt(rangeInput.value) || 0;
+    const hitdieBonus = parseInt(hitdieBonusInput.value) || 0;
+    const amount = parseInt(amountInput.value) || 1;
+    const damage = damageInput.value.trim();
+    const notes = notesInput.value.trim();
+    
+    if (!name) {
+        alert('Please enter an item name');
+        return;
+    }
+    
+    if (!currentCharacterId) {
+        console.error('No character selected');
+        return;
+    }
+    
+    const equipmentData = {
+        name: name,
+        range: range,
+        hitdie_bonus: hitdieBonus,
+        amount: amount,
+        description: description,
+        damage: damage,
+        notes: notes
+    };
+    
+    console.log('Sending equipment data to server:', {
+        mode: 'item_add',
+        character_id: parseInt(currentCharacterId),
+        item: equipmentData
+    });
+    
+    // Send request to server
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mode: 'item_add',
+            character_id: parseInt(currentCharacterId),
+            item: equipmentData
+        })
+    })
+    .then(response => {
+        console.log('Server response status:', response.status);
+        if (response.ok) {
+            // If successful, fetch the updated character list
+            return fetch("http://localhost:8080/characters");
+        } else {
+            throw new Error('Failed to add equipment item');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Updated character data from server:', data);
+        // Update the characters map with fresh data from server
+        characters = {};
+        Object.values(data).forEach(characterData => {
+            const character = Character.from_json(JSON.stringify(characterData));
+            characters[character.id] = character;
+        });
+        
+        console.log('Updated characters map:', characters);
+        
+        // Reload the current character data to show the new equipment
+        loadCharacterData(currentCharacterId);
+        
+        // Close modal
+        hideAddEquipmentModal();
+        
+        console.log('Equipment item added successfully');
+    })
+    .catch(error => {
+        console.error('Error adding equipment item:', error);
+        alert('Failed to add equipment item. Please try again.');
+    });
+}
+
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     fetch("http://localhost:8080/characters")
@@ -951,6 +1106,28 @@ document.addEventListener('DOMContentLoaded', () => {
         importSelectedButton.addEventListener('click', importCharacterFromFile);
     }
     
+    // Add new equipment button functionality
+    const newEquipmentBtn = document.getElementById('new-equipment-btn');
+    if (newEquipmentBtn) {
+        newEquipmentBtn.addEventListener('click', showAddEquipmentModal);
+    }
+    
+    // Add equipment modal handlers
+    const closeEquipmentModal = document.getElementById('close-equipment-modal');
+    if (closeEquipmentModal) {
+        closeEquipmentModal.addEventListener('click', hideAddEquipmentModal);
+    }
+    
+    const cancelEquipmentBtn = document.getElementById('cancel-equipment');
+    if (cancelEquipmentBtn) {
+        cancelEquipmentBtn.addEventListener('click', hideAddEquipmentModal);
+    }
+    
+    const addEquipmentBtn = document.getElementById('add-equipment');
+    if (addEquipmentBtn) {
+        addEquipmentBtn.addEventListener('click', addEquipmentItem);
+    }
+    
     // Close dropdown when clicking outside
     document.addEventListener('click', (event) => {
         const createContainer = document.querySelector('.create-container');
@@ -965,6 +1142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         fileModal.addEventListener('click', (event) => {
             if (event.target === fileModal) {
                 hideFileImportModal();
+            }
+        });
+    }
+
+    // Close equipment modal when clicking outside
+    const equipmentModal = document.getElementById('add-equipment-modal');
+    if (equipmentModal) {
+        equipmentModal.addEventListener('click', (event) => {
+            if (event.target === equipmentModal) {
+                hideAddEquipmentModal();
             }
         });
     }

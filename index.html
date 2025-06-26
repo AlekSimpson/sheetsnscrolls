@@ -115,7 +115,10 @@
                     </div>
 
                     <div class="sheet-section">
-                        <div class="section-title">Equipment</div>
+                        <div class="section-header">
+                            <div class="section-title">Equipment</div>
+                            <button class="new-item-btn" id="new-equipment-btn">+ New</button>
+                        </div>
                         <div class="equipment-list">
                             <!-- Equipment will be dynamically inserted here -->
                         </div>
@@ -147,6 +150,54 @@
                         <input type="file" id="file-input" accept=".json" style="display: none;">
                         <button class="secondary-btn" id="browse-files">Browse Files</button>
                         <button class="primary-btn" id="import-selected" disabled>Import Selected</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Equipment Modal -->
+        <div id="add-equipment-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add Equipment</h2>
+                    <button class="close-modal" id="close-equipment-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="equipment-name">Item Name</label>
+                        <input type="text" id="equipment-name" placeholder="Enter item name..." class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-description">Description</label>
+                        <textarea id="equipment-description" placeholder="Enter item description..." class="form-textarea"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="equipment-range">Range</label>
+                            <input type="number" id="equipment-range" placeholder="0" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipment-hitdie-bonus">Hit Die Bonus</label>
+                            <input type="number" id="equipment-hitdie-bonus" placeholder="0" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="equipment-amount">Amount</label>
+                            <input type="number" id="equipment-amount" placeholder="1" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipment-damage">Damage</label>
+                            <input type="text" id="equipment-damage" placeholder="e.g., 1d6" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipment-notes">Notes</label>
+                        <textarea id="equipment-notes" placeholder="Additional notes..." class="form-textarea"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="secondary-btn" id="cancel-equipment">Cancel</button>
+                        <button class="primary-btn" id="add-equipment">Add Item</button>
                     </div>
                 </div>
             </div>

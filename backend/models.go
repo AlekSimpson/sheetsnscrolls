@@ -1,25 +1,25 @@
 package main
 
 import (
-	"math/rand"
-	"time"
-	"slices"
 	"math"
+	"math/rand"
+	"slices"
+	"time"
 )
 
 var default_hitdice = map[string]int{
-	"sorcerer": 6,
-	"wizard": 6,
+	"sorcerer":  6,
+	"wizard":    6,
 	"artificer": 8,
-	"bard": 8,
-	"cleric": 8,
-	"druid": 8,
-	"monk": 8,
-	"rogue": 8,
-	"warlock": 8,
-	"fighter": 10,
-	"paladin": 10,
-	"ranger": 10,
+	"bard":      8,
+	"cleric":    8,
+	"druid":     8,
+	"monk":      8,
+	"rogue":     8,
+	"warlock":   8,
+	"fighter":   10,
+	"paladin":   10,
+	"ranger":    10,
 	"barbarian": 12,
 }
 
@@ -31,8 +31,6 @@ type AbilityScores struct {
 	Wisdom       int `json:"wisdom"`
 	Charisma     int `json:"charisma"`
 }
-
-
 
 func (a AbilityScores) modifier(ability string) int {
 	var score int
@@ -63,42 +61,47 @@ type CombatStats struct {
 }
 
 type Item struct {
-	Name        int `json:"name"`
-	Description string `json:"description"`
+	Name         string `json:"name"`
+	Range        int    `json:"range"`
+	Hitdie_bonus int    `json:"hitdie_bonus"`
+	Amount       int    `json:"amount"`
+	Description  string `json:"description"`
+	Damage       string `json:"damage"`
+	Notes        string `json:"notes"`
 }
 
 type Character struct {
-	Id           int            		`json:"id"`
-	Name         string         		`json:"name"`
-	Level        int            		`json:"level"`
-	Class        string 				`json:"class"`
-	Hitdice		 int  					`json:"hitdice"`
-	Race         string 				`json:"race"`
-	Abilities    AbilityScores  		`json:"abilities"`
-	Combat_stats CombatStats    		`json:"combat_skills"`
-	Equipment    []Item         		`json:"equipment"`
+	Id           int                    `json:"id"`
+	Name         string                 `json:"name"`
+	Level        int                    `json:"level"`
+	Class        string                 `json:"class"`
+	Hitdice      int                    `json:"hitdice"`
+	Race         string                 `json:"race"`
+	Abilities    AbilityScores          `json:"abilities"`
+	Combat_stats CombatStats            `json:"combat_skills"`
+	Equipment    []Item                 `json:"equipment"`
 	Skills       map[string]interface{} `json:"skills"`
-	Background   string         		`json:"background"`
+	Background   string                 `json:"background"`
 }
 
 func create_character(name string, class string, race string, background string) Character {
-	generate_combat_stats := func (class string, level int, abilities AbilityScores) CombatStats {
+	generate_combat_stats := func(class string, level int, abilities AbilityScores) CombatStats {
 		hitdice := default_hitdice[class]
-		hp := int(math.Abs(float64(hitdice + (level*hitdice) + (2*level) + (2*level*abilities.modifier("constitution")) - 2) / 2))
-		if (hp == 0) {
+		hp := int(math.Abs(float64(hitdice+(level*hitdice)+(2*level)+(2*level*abilities.modifier("constitution"))-2) / 2))
+		if hp == 0 {
 			hp = 1
 		}
 		max_hp := hp
 		ac := 10 + abilities.modifier("dex")
 		return CombatStats{
-			Health_points: hp,
+			Health_points:     hp,
 			Max_health_points: max_hp,
-			Armor_class: ac,
-			Speed: 30, // TODO: figure out how we want to auto set this
+			Armor_class:       ac,
+			Speed:             30, // TODO: figure out how we want to auto set this
 		}
 	}
 
-	roll_abilities := func () AbilityScores {
+	roll_abilities := func() AbilityScores {
 		rolld6 := func() int {
 			rand.Seed(time.Now().UnixNano())
 			return rand.Intn(6) + 1
@@ -121,12 +124,12 @@ func create_character(name string, class string, race string, background string)
 		}
 
 		return AbilityScores{
-			Strength: roll_ability(),
-			Dexterity: roll_ability(),
+			Strength:     roll_ability(),
+			Dexterity:    roll_ability(),
 			Constitution: roll_ability(),
-			Intelligence: roll_ability(), 
-			Wisdom: roll_ability(),
-			Charisma: roll_ability(),
+			Intelligence: roll_ability(),
+			Wisdom:       roll_ability(),
+			Charisma:     roll_ability(),
 		}
 	}
 
@@ -134,38 +137,38 @@ func create_character(name string, class string, race string, background string)
 	abilities := roll_abilities()
 	combat := generate_combat_stats(class, level, abilities)
 	var skillmap = map[string]interface{}{
-		"acrobatics": abilities.Dexterity,
+		"acrobatics":      abilities.Dexterity,
 		"animal handling": abilities.Wisdom,
-		"arcana": abilities.Intelligence,
-		"athletics": abilities.Strength,
-		"deception": abilities.Charisma,
-		"history": abilities.Intelligence,
-		"insight": abilities.Wisdom,
-		"intimidation": abilities.Charisma,
-		"investigation": abilities.Intelligence,
-		"medicine": abilities.Wisdom,
-		"nature": abilities.Intelligence,
-		"perception": abilities.Wisdom,
-		"performance": abilities.Charisma,
-		"persuasion": abilities.Charisma,
-		"religion": abilities.Intelligence,
-		"slight of hand": abilities.Dexterity,
-		"stealth": abilities.Dexterity,
-		"survival": abilities.Wisdom,
+		"arcana":          abilities.Intelligence,
+		"athletics":       abilities.Strength,
+		"deception":       abilities.Charisma,
+		"history":         abilities.Intelligence,
+		"insight":         abilities.Wisdom,
+		"intimidation":    abilities.Charisma,
+		"investigation":   abilities.Intelligence,
+		"medicine":        abilities.Wisdom,
+		"nature":          abilities.Intelligence,
+		"perception":      abilities.Wisdom,
+		"performance":     abilities.Charisma,
+		"persuasion":      abilities.Charisma,
+		"religion":        abilities.Intelligence,
+		"slight of hand":  abilities.Dexterity,
+		"stealth":         abilities.Dexterity,
+		"survival":        abilities.Wisdom,
 	}
 
 	return Character{
-		Id: assign_id(),
-		Name: name, 
-		Level: level,
-		Class: class,
-		Hitdice: default_hitdice[class],
-		Race: race,
-		Abilities: abilities,
+		Id:           assign_id(),
+		Name:         name,
+		Level:        level,
+		Class:        class,
+		Hitdice:      default_hitdice[class],
+		Race:         race,
+		Abilities:    abilities,
 		Combat_stats: combat,
-		Equipment: []Item{},
-		Skills: skillmap,
-		Background: background,
+		Equipment:    []Item{},
+		Skills:       skillmap,
+		Background:   background,
 	}
 }
 
@@ -184,7 +187,8 @@ func create_random_character() Character {
 }
 
 type PostRequest struct {
-	Mode string 	  `json:"mode"`
-	Content Character `json:"content"`
-	Character_id int  `json:"character_id"`
+	Mode         string    `json:"mode"`
+	Content      Character `json:"content"`
+	Character_id int       `json:"character_id"`
+	AddedItem    Item      `json:"item"`
 }
