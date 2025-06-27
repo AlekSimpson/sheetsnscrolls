@@ -191,4 +191,5 @@ type PostRequest struct {
 	Content      Character `json:"content"`
 	Character_id int       `json:"character_id"`
 	AddedItem    Item      `json:"item"`
+	ItemIndex    int       `json:"item_index"`
 }

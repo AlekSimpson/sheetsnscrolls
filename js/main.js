@@ -372,6 +372,9 @@ function loadCharacterData(characterId) {
                     return `
                         <div class="equipment-item modern" data-item-idx="${idx}">
                             <div class="item-amount-badge-absolute">${item.amount}</div>
+                            <button class="item-edit-btn" onclick="editEquipmentItem(${character.id}, ${idx})" title="Edit item">
+                                <span class="edit-icon">✏️</span>
+                            </button>
                             <div class="equipment-main-row">
                                 <div class="item-icon-box">
                                     <span class="item-icon">🗡️</span>
@@ -904,7 +907,7 @@ function showAddEquipmentModal() {
         currentCharacterId = characterTitle.dataset.characterId;
     }
     
-    if (!currentCharacterId) {
+    if (currentCharacterId === null || currentCharacterId === undefined) {
         console.error('No character selected');
         return;
     }
@@ -926,12 +929,30 @@ function showAddEquipmentModal() {
 }
 
 function hideAddEquipmentModal() {
+    console.log('hideAddEquipmentModal called');
+    
     const modal = document.getElementById('add-equipment-modal');
     modal.classList.remove('active');
+    
+    // Reset modal state
+    const modalTitle = modal.querySelector('.modal-header h2');
+    const addButton = document.getElementById('add-equipment');
+    
+    // Reset title and button text
+    modalTitle.textContent = 'Add Equipment';
+    addButton.textContent = 'Add Item';
+    
+    // Clear editing state
+    window.currentEditingItemIndex = undefined;
     currentCharacterId = null;
+    console.log('Reset currentCharacterId to null');
 }
 
 function addEquipmentItem() {
+    console.log('addEquipmentItem called');
+    console.log('currentCharacterId:', currentCharacterId);
+    console.log('window.currentEditingItemIndex:', window.currentEditingItemIndex);
+    
     const nameInput = document.getElementById('equipment-name');
     const descriptionInput = document.getElementById('equipment-description');
     const rangeInput = document.getElementById('equipment-range');
@@ -953,7 +974,7 @@ function addEquipmentItem() {
         return;
     }
     
-    if (!currentCharacterId) {
+    if (currentCharacterId === null || currentCharacterId === undefined) {
         console.error('No character selected');
         return;
     }
@@ -968,11 +989,21 @@ function addEquipmentItem() {
         notes: notes
     };
     
-    console.log('Sending equipment data to server:', {
-        mode: 'item_add',
+    // Check if we're editing an existing item
+    const isEditing = window.currentEditingItemIndex !== undefined;
+    
+    const requestBody = {
+        mode: isEditing ? 'item_update' : 'item_add',
         character_id: parseInt(currentCharacterId),
         item: equipmentData
-    });
+    };
+    
+    // Add item index for updates
+    if (isEditing) {
+        requestBody.item_index = window.currentEditingItemIndex;
+    }
+    
+    console.log('Sending equipment data to server:', requestBody);
     
     // Send request to server
     fetch('http://localhost:8080/characters', {
@@ -980,11 +1011,7 @@ function addEquipmentItem() {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            mode: 'item_add',
-            character_id: parseInt(currentCharacterId),
-            item: equipmentData
-        })
+        body: JSON.stringify(requestBody)
     })
     .then(response => {
         console.log('Server response status:', response.status);
@@ -992,7 +1019,7 @@ function addEquipmentItem() {
             // If successful, fetch the updated character list
             return fetch("http://localhost:8080/characters");
         } else {
-            throw new Error('Failed to add equipment item');
+            throw new Error(`Failed to ${isEditing ? 'update' : 'add'} equipment item`);
         }
     })
     .then(response => response.json())
@@ -1007,18 +1034,63 @@ function addEquipmentItem() {
         
         console.log('Updated characters map:', characters);
         
-        // Reload the current character data to show the new equipment
-        loadCharacterData(currentCharacterId);
+        // Save the current character ID before closing modal (which resets it)
+        const characterIdToReload = currentCharacterId;
         
         // Close modal
         hideAddEquipmentModal();
         
-        console.log('Equipment item added successfully');
+        // Reload the current character data to show the updated equipment
+        loadCharacterData(characterIdToReload);
+        
+        console.log(`Equipment item ${isEditing ? 'updated' : 'added'} successfully`);
     })
     .catch(error => {
-        console.error('Error adding equipment item:', error);
-        alert('Failed to add equipment item. Please try again.');
+        console.error(`Error ${isEditing ? 'updating' : 'adding'} equipment item:`, error);
+        alert(`Failed to ${isEditing ? 'update' : 'add'} equipment item. Please try again.`);
     });
+}
+
+function editEquipmentItem(characterId, itemIndex) {
+    console.log('editEquipmentItem called with characterId:', characterId);
+    
+    const character = characters[characterId];
+    if (!character || !character.equipment || !character.equipment[itemIndex]) {
+        console.error('Character or equipment item not found');
+        return;
+    }
+    
+    const item = character.equipment[itemIndex];
+    
+    // Set the current character ID for the modal
+    currentCharacterId = characterId;
+    console.log('Set currentCharacterId to:', currentCharacterId);
+    
+    // Store the item index being edited
+    window.currentEditingItemIndex = itemIndex;
+    
+    const modal = document.getElementById('add-equipment-modal');
+    const modalTitle = modal.querySelector('.modal-header h2');
+    const addButton = document.getElementById('add-equipment');
+    
+    // Update modal title and button text
+    modalTitle.textContent = 'Edit Equipment';
+    addButton.textContent = 'Update Item';
+    
+    // Populate form fields with existing item data
+    document.getElementById('equipment-name').value = item.name || '';
+    document.getElementById('equipment-description').value = item.description || '';
+    document.getElementById('equipment-range').value = item.range || '';
+    document.getElementById('equipment-hitdie-bonus').value = item.hitdie_bonus || '';
+    document.getElementById('equipment-amount').value = item.amount || 1;
+    document.getElementById('equipment-damage').value = item.damage || '';
+    document.getElementById('equipment-notes').value = item.notes || '';
+    
+    // Show the modal
+    modal.classList.add('active');
+    
+    // Focus on the name field
+    document.getElementById('equipment-name').focus();
 }
 
 // Initialize the page

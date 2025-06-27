@@ -55,6 +55,7 @@ func process_post_request(request_body string, w http.ResponseWriter) {
 		character = characters[character_id]
 		character.Equipment = append(character.Equipment, request.AddedItem)
 		characters[character_id] = character
+
 	}
 
 	w.Header().Set("Content-Type", "application/json")

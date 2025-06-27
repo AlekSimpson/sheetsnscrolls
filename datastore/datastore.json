@@ -22,7 +22,7 @@
     },
     "equipment": [
       {
-        "name": "sd",
+        "name": "test",
         "range": 0,
         "hitdie_bonus": 0,
         "amount": 1,
@@ -56,6 +56,15 @@
         "description": "its medium",
         "damage": "",
         "notes": "spent 30"
+      },
+      {
+        "name": "other",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 1,
+        "description": "sd",
+        "damage": "1d6",
+        "notes": "sd"
       }
     ],
     "skills": {
