@@ -84,55 +84,55 @@ type Character struct {
 	Background   string                 `json:"background"`
 }
 
+func generate_combat_stats(class string, level int, abilities AbilityScores) CombatStats {
+	hitdice := default_hitdice[class]
+	hp := int(math.Abs(float64(hitdice+(level*hitdice)+(2*level)+(2*level*abilities.modifier("constitution"))-2) / 2))
+	if hp == 0 {
+		hp = 1
+	}
+	max_hp := hp
+	ac := 10 + abilities.modifier("dex")
+	return CombatStats{
+		Health_points:     hp,
+		Max_health_points: max_hp,
+		Armor_class:       ac,
+		Speed:             30, // TODO: figure out how we want to auto set this
+	}
+}
+
+func roll_abilities() AbilityScores {
+	rolld6 := func() int {
+		rand.Seed(time.Now().UnixNano())
+		return rand.Intn(6) + 1
+	}
+
+	roll_ability := func() int {
+		rolls := []int{}
+		for range 4 {
+			rolls = append(rolls, rolld6())
+		}
+
+		slices.Sort(rolls)
+
+		kept_rolls := rolls[1:]
+		score := 0
+		for _, value := range kept_rolls {
+			score += value
+		}
+		return score
+	}
+
+	return AbilityScores{
+		Strength:     roll_ability(),
+		Dexterity:    roll_ability(),
+		Constitution: roll_ability(),
+		Intelligence: roll_ability(),
+		Wisdom:       roll_ability(),
+		Charisma:     roll_ability(),
+	}
+}
+
 func create_character(name string, class string, race string, background string) Character {
-	generate_combat_stats := func(class string, level int, abilities AbilityScores) CombatStats {
-		hitdice := default_hitdice[class]
-		hp := int(math.Abs(float64(hitdice+(level*hitdice)+(2*level)+(2*level*abilities.modifier("constitution"))-2) / 2))
-		if hp == 0 {
-			hp = 1
-		}
-		max_hp := hp
-		ac := 10 + abilities.modifier("dex")
-		return CombatStats{
-			Health_points:     hp,
-			Max_health_points: max_hp,
-			Armor_class:       ac,
-			Speed:             30, // TODO: figure out how we want to auto set this
-		}
-	}
-
-	roll_abilities := func() AbilityScores {
-		rolld6 := func() int {
-			rand.Seed(time.Now().UnixNano())
-			return rand.Intn(6) + 1
-		}
-
-		roll_ability := func() int {
-			rolls := []int{}
-			for range 4 {
-				rolls = append(rolls, rolld6())
-			}
-
-			slices.Sort(rolls)
-
-			kept_rolls := rolls[1:]
-			score := 0
-			for _, value := range kept_rolls {
-				score += value
-			}
-			return score
-		}
-
-		return AbilityScores{
-			Strength:     roll_ability(),
-			Dexterity:    roll_ability(),
-			Constitution: roll_ability(),
-			Intelligence: roll_ability(),
-			Wisdom:       roll_ability(),
-			Charisma:     roll_ability(),
-		}
-	}
-
 	level := 1
 	abilities := roll_abilities()
 	combat := generate_combat_stats(class, level, abilities)

@@ -55,6 +55,18 @@ func process_post_request(request_body string, w http.ResponseWriter) {
 		character = characters[character_id]
 		character.Equipment = append(character.Equipment, request.AddedItem)
 		characters[character_id] = character
+	case "item_update":
+		character_id := request.Character_id
+		character = characters[character_id]
+		if request.ItemIndex >= 0 && request.ItemIndex < len(character.Equipment) {
+			character.Equipment[request.ItemIndex] = request.AddedItem
+			characters[character_id] = character
+		}
+	case "reroll_abilities":
+		character_id := request.Character_id
+		character = characters[character_id]
+		character.Abilities = roll_abilities()
+		characters[character_id] = character
 
 	}
 

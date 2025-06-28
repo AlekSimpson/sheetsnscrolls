@@ -965,7 +965,9 @@ function addEquipmentItem() {
     const description = descriptionInput.value.trim();
     const range = parseInt(rangeInput.value) || 0;
     const hitdieBonus = parseInt(hitdieBonusInput.value) || 0;
-    const amount = parseInt(amountInput.value) || 1;
+    const amount = parseInt(amountInput.value);
+    // Allow 0 amounts, but default to 1 if empty or invalid, and prevent negative amounts
+    const finalAmount = isNaN(amount) ? 1 : Math.max(0, amount);
     const damage = damageInput.value.trim();
     const notes = notesInput.value.trim();
     
@@ -983,7 +985,7 @@ function addEquipmentItem() {
         name: name,
         range: range,
         hitdie_bonus: hitdieBonus,
-        amount: amount,
+        amount: finalAmount,
         description: description,
         damage: damage,
         notes: notes
@@ -1082,7 +1084,7 @@ function editEquipmentItem(characterId, itemIndex) {
     document.getElementById('equipment-description').value = item.description || '';
     document.getElementById('equipment-range').value = item.range || '';
     document.getElementById('equipment-hitdie-bonus').value = item.hitdie_bonus || '';
-    document.getElementById('equipment-amount').value = item.amount || 1;
+    document.getElementById('equipment-amount').value = item.amount !== undefined ? item.amount : 1;
     document.getElementById('equipment-damage').value = item.damage || '';
     document.getElementById('equipment-notes').value = item.notes || '';
     
@@ -1091,6 +1093,264 @@ function editEquipmentItem(characterId, itemIndex) {
     
     // Focus on the name field
     document.getElementById('equipment-name').focus();
+}
+
+// Character edit modal functionality
+let currentEditingCharacterId = null;
+
+// Function to calculate D&D ability modifier
+function calculateAbilityModifier(abilityScore) {
+    return Math.floor((abilityScore - 10) / 2);
+}
+
+// Function to update ability modifier displays
+function updateAbilityModifiers() {
+    const abilities = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma'];
+    const modifierIds = ['str-modifier', 'dex-modifier', 'con-modifier', 'int-modifier', 'wis-modifier', 'cha-modifier'];
+    
+    abilities.forEach((ability, index) => {
+        const input = document.getElementById(`edit-${ability}`);
+        const modifierElement = document.getElementById(modifierIds[index]);
+        
+        if (input && modifierElement) {
+            const score = parseInt(input.value) || 10;
+            const modifier = calculateAbilityModifier(score);
+            modifierElement.textContent = modifier >= 0 ? `+${modifier}` : `${modifier}`;
+        }
+    });
+}
+
+function showCharacterEditModal() {
+    // Get the current character ID from the character sheet
+    const characterTitle = document.querySelector('.character-title .editable-name');
+    if (characterTitle) {
+        currentEditingCharacterId = characterTitle.dataset.characterId;
+    }
+    
+    if (currentEditingCharacterId === null || currentEditingCharacterId === undefined) {
+        console.error('No character selected');
+        return;
+    }
+    
+    const character = characters[currentEditingCharacterId];
+    if (!character) {
+        console.error('Character not found');
+        return;
+    }
+    
+    const modal = document.getElementById('character-edit-modal');
+    modal.classList.add('active');
+    
+    // Populate form fields with current character data
+    document.getElementById('edit-character-name').value = character.name;
+    document.getElementById('edit-character-level').value = character.level;
+    document.getElementById('edit-character-race').value = character.race;
+    document.getElementById('edit-character-class').value = character.class;
+    
+    // Populate ability scores
+    document.getElementById('edit-strength').value = character.abilities.strength;
+    document.getElementById('edit-dexterity').value = character.abilities.dexterity;
+    document.getElementById('edit-constitution').value = character.abilities.constitution;
+    document.getElementById('edit-intelligence').value = character.abilities.intelligence;
+    document.getElementById('edit-wisdom').value = character.abilities.wisdom;
+    document.getElementById('edit-charisma').value = character.abilities.charisma;
+    
+    // Populate combat stats
+    document.getElementById('edit-max-hp').value = character.combat_skills.max_hp;
+    document.getElementById('edit-ac').value = character.combat_skills.ac;
+    document.getElementById('edit-speed').value = character.combat_skills.speed;
+    
+    // Update ability modifiers
+    updateAbilityModifiers();
+    
+    // Focus on the name field
+    document.getElementById('edit-character-name').focus();
+}
+
+function hideCharacterEditModal() {
+    const modal = document.getElementById('character-edit-modal');
+    modal.classList.remove('active');
+    currentEditingCharacterId = null;
+}
+
+function rerollAbilityScores() {
+    if (!currentEditingCharacterId) return;
+    
+    // Send request to server to reroll abilities
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            "mode": "reroll_abilities",
+            "character_id": parseInt(currentEditingCharacterId)
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            return fetch("http://localhost:8080/characters");
+        } else {
+            throw new Error('Failed to reroll abilities');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the characters map with fresh data from server
+        characters = {};
+        Object.values(data).forEach(characterData => {
+            const character = Character.from_json(JSON.stringify(characterData));
+            characters[character.id] = character;
+        });
+        
+        // Reload the current character data to show the updated abilities
+        loadCharacterData(currentEditingCharacterId);
+        
+        // Update the ability score input fields with new values
+        const updatedCharacter = characters[currentEditingCharacterId];
+        if (updatedCharacter) {
+            document.getElementById('edit-strength').value = updatedCharacter.abilities.strength;
+            document.getElementById('edit-dexterity').value = updatedCharacter.abilities.dexterity;
+            document.getElementById('edit-constitution').value = updatedCharacter.abilities.constitution;
+            document.getElementById('edit-intelligence').value = updatedCharacter.abilities.intelligence;
+            document.getElementById('edit-wisdom').value = updatedCharacter.abilities.wisdom;
+            document.getElementById('edit-charisma').value = updatedCharacter.abilities.charisma;
+            
+            // Update ability modifiers after reroll
+            updateAbilityModifiers();
+        }
+        
+        console.log('Ability scores rerolled successfully');
+        alert('Ability scores have been rerolled!');
+    })
+    .catch(error => {
+        console.error('Error rerolling abilities:', error);
+        alert('Failed to reroll ability scores. Please try again.');
+    });
+}
+
+
+
+
+
+function saveCharacterEdit() {
+    if (!currentEditingCharacterId) return;
+    
+    const character = characters[currentEditingCharacterId];
+    if (!character) return;
+    
+    // Get values from form
+    const newName = document.getElementById('edit-character-name').value.trim();
+    const newLevel = parseInt(document.getElementById('edit-character-level').value) || 1;
+    const newRace = document.getElementById('edit-character-race').value.trim();
+    const newClass = document.getElementById('edit-character-class').value.trim();
+    
+    // Get ability score values
+    const newStrength = parseInt(document.getElementById('edit-strength').value) || 10;
+    const newDexterity = parseInt(document.getElementById('edit-dexterity').value) || 10;
+    const newConstitution = parseInt(document.getElementById('edit-constitution').value) || 10;
+    const newIntelligence = parseInt(document.getElementById('edit-intelligence').value) || 10;
+    const newWisdom = parseInt(document.getElementById('edit-wisdom').value) || 10;
+    const newCharisma = parseInt(document.getElementById('edit-charisma').value) || 10;
+    
+    // Get combat stats values
+    const newMaxHP = parseInt(document.getElementById('edit-max-hp').value) || 1;
+    const newAC = parseInt(document.getElementById('edit-ac').value) || 10;
+    const newSpeed = parseInt(document.getElementById('edit-speed').value) || 30;
+    
+    // Validate required fields
+    if (!newName) {
+        alert('Character name is required');
+        return;
+    }
+    
+    // Validate ability scores (1-30 range)
+    const abilityScores = [newStrength, newDexterity, newConstitution, newIntelligence, newWisdom, newCharisma];
+    for (let score of abilityScores) {
+        if (score < 1 || score > 30) {
+            alert('Ability scores must be between 1 and 30');
+            return;
+        }
+    }
+    
+    // Validate max HP (1-999 range)
+    if (newMaxHP < 1 || newMaxHP > 999) {
+        alert('Max HP must be between 1 and 999');
+        return;
+    }
+    
+    // Validate AC (1-30 range)
+    if (newAC < 1 || newAC > 30) {
+        alert('AC must be between 1 and 30');
+        return;
+    }
+    
+    // Validate Speed (0-120 range)
+    if (newSpeed < 0 || newSpeed > 120) {
+        alert('Walking Speed must be between 0 and 120');
+        return;
+    }
+    
+    // Update character properties locally first
+    character.name = newName;
+    character.level = newLevel;
+    character.race = newRace;
+    character.class = newClass;
+    character.abilities.strength = newStrength;
+    character.abilities.dexterity = newDexterity;
+    character.abilities.constitution = newConstitution;
+    character.abilities.intelligence = newIntelligence;
+    character.abilities.wisdom = newWisdom;
+    character.abilities.charisma = newCharisma;
+    character.combat_skills.max_hp = newMaxHP;
+    character.combat_skills.ac = newAC;
+    character.combat_skills.speed = newSpeed;
+    
+    // Send update to server and wait for response
+    fetch('http://localhost:8080/characters', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+            "mode": "update", 
+            "content": character.clone()
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            return fetch("http://localhost:8080/characters");
+        } else {
+            throw new Error('Failed to update character');
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the characters map with fresh data from server
+        characters = {};
+        Object.values(data).forEach(characterData => {
+            const char = Character.from_json(JSON.stringify(characterData));
+            characters[char.id] = char;
+        });
+        
+        // Save the character ID before closing modal (since hideCharacterEditModal sets it to null)
+        const characterIdToReload = currentEditingCharacterId;
+        
+        // Close modal
+        hideCharacterEditModal();
+        
+        // Reload character data to reflect changes (using saved ID)
+        loadCharacterData(characterIdToReload);
+        
+        // Re-render character cards to update the character list
+        renderCharacterCards();
+        
+        console.log('Character updated successfully');
+    })
+    .catch(error => {
+        console.error('Error updating character:', error);
+        alert('Failed to update character. Please try again.');
+    });
 }
 
 // Initialize the page
@@ -1227,4 +1487,55 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    
+    // Add character edit button functionality
+    const editCharacterBtn = document.getElementById('edit-character-btn');
+    if (editCharacterBtn) {
+        editCharacterBtn.addEventListener('click', showCharacterEditModal);
+    }
+    
+    // Add character edit modal handlers
+    const closeCharacterEditModal = document.getElementById('close-character-edit-modal');
+    if (closeCharacterEditModal) {
+        closeCharacterEditModal.addEventListener('click', hideCharacterEditModal);
+    }
+    
+    const cancelCharacterEdit = document.getElementById('cancel-character-edit');
+    if (cancelCharacterEdit) {
+        cancelCharacterEdit.addEventListener('click', hideCharacterEditModal);
+    }
+    
+    const saveCharacterEditBtn = document.getElementById('save-character-edit');
+    if (saveCharacterEditBtn) {
+        saveCharacterEditBtn.addEventListener('click', saveCharacterEdit);
+    }
+    
+    // Add character edit action handlers
+    const rerollAbilitiesBtn = document.getElementById('reroll-abilities');
+    if (rerollAbilitiesBtn) {
+        rerollAbilitiesBtn.addEventListener('click', rerollAbilityScores);
+    }
+    
+
+    
+
+    
+    // Close character edit modal when clicking outside
+    const characterEditModal = document.getElementById('character-edit-modal');
+    if (characterEditModal) {
+        characterEditModal.addEventListener('click', (event) => {
+            if (event.target === characterEditModal) {
+                hideCharacterEditModal();
+            }
+        });
+    }
+    
+    // Add event listeners to ability score inputs for real-time modifier updates
+    const abilityInputs = ['edit-strength', 'edit-dexterity', 'edit-constitution', 'edit-intelligence', 'edit-wisdom', 'edit-charisma'];
+    abilityInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('input', updateAbilityModifiers);
+        }
+    });
 });

@@ -83,7 +83,10 @@
                         <div class="character-subtitle">Level X Race Class</div>
                     </div>
                 </div>
-                <button class="back-btn" onclick="goBack()">← Back to Characters</button>
+                <div class="header-actions">
+                    <button class="edit-character-btn" id="edit-character-btn">✏️ Edit Character</button>
+                    <button class="back-btn" onclick="goBack()">← Back to Characters</button>
+                </div>
             </div>
 
             <div class="sheet-content">
@@ -184,7 +187,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="equipment-amount">Amount</label>
-                            <input type="number" id="equipment-amount" placeholder="1" class="form-input">
+                            <input type="number" id="equipment-amount" min="0" placeholder="1" class="form-input">
                         </div>
                         <div class="form-group">
                             <label for="equipment-damage">Damage</label>
@@ -198,6 +201,103 @@
                     <div class="modal-actions">
                         <button class="secondary-btn" id="cancel-equipment">Cancel</button>
                         <button class="primary-btn" id="add-equipment">Add Item</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Character Edit Modal -->
+        <div id="character-edit-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Edit Character</h2>
+                    <button class="close-modal" id="close-character-edit-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-character-name">Character Name</label>
+                            <input type="text" id="edit-character-name" placeholder="Enter character name..." class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-character-level">Level</label>
+                            <input type="number" id="edit-character-level" min="1" max="20" placeholder="1" class="form-input">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-character-race">Race</label>
+                            <input type="text" id="edit-character-race" placeholder="Enter character race..." class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-character-class">Class</label>
+                            <input type="text" id="edit-character-class" placeholder="Enter character class..." class="form-input">
+                        </div>
+                    </div>
+                    <div class="character-edit-actions">
+                        <div class="action-section">
+                            <h3>Ability Scores</h3>
+                            <div class="ability-scores-manual">
+                                <div class="ability-score-row">
+                                    <div class="ability-input-group">
+                                        <label for="edit-strength">STR</label>
+                                        <input type="number" id="edit-strength" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="str-modifier">+0</span>
+                                    </div>
+                                    <div class="ability-input-group">
+                                        <label for="edit-dexterity">DEX</label>
+                                        <input type="number" id="edit-dexterity" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="dex-modifier">+0</span>
+                                    </div>
+                                    <div class="ability-input-group">
+                                        <label for="edit-constitution">CON</label>
+                                        <input type="number" id="edit-constitution" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="con-modifier">+0</span>
+                                    </div>
+                                </div>
+                                <div class="ability-score-row">
+                                    <div class="ability-input-group">
+                                        <label for="edit-intelligence">INT</label>
+                                        <input type="number" id="edit-intelligence" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="int-modifier">+0</span>
+                                    </div>
+                                    <div class="ability-input-group">
+                                        <label for="edit-wisdom">WIS</label>
+                                        <input type="number" id="edit-wisdom" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="wis-modifier">+0</span>
+                                    </div>
+                                    <div class="ability-input-group">
+                                        <label for="edit-charisma">CHA</label>
+                                        <input type="number" id="edit-charisma" min="1" max="30" class="ability-input">
+                                        <span class="ability-modifier" id="cha-modifier">+0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="modal-action-btn reroll-btn" id="reroll-abilities">🎲 Reroll Ability Scores</button>
+                            <p class="action-description">Manually adjust ability scores or randomly generate new ones</p>
+                        </div>
+                        <div class="action-section">
+                            <h3>Combat Stats</h3>
+                            <div class="combat-stats-manual">
+                                <div class="combat-input-group">
+                                    <label for="edit-max-hp">Max HP</label>
+                                    <input type="number" id="edit-max-hp" min="1" max="999" class="combat-input">
+                                </div>
+                                <div class="combat-input-group">
+                                    <label for="edit-ac">AC</label>
+                                    <input type="number" id="edit-ac" min="1" max="30" class="combat-input">
+                                </div>
+                                <div class="combat-input-group">
+                                    <label for="edit-speed">Walking Speed</label>
+                                    <input type="number" id="edit-speed" min="0" max="120" class="combat-input">
+                                </div>
+                            </div>
+                            <p class="action-description">Manually adjust max HP, armor class, and walking speed for your character</p>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="secondary-btn" id="cancel-character-edit">Cancel</button>
+                        <button class="primary-btn" id="save-character-edit">Save Changes</button>
                     </div>
                 </div>
             </div>

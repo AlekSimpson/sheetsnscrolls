@@ -91,29 +91,138 @@
   },
   "1": {
     "id": 1,
-    "name": "Aelindra Haliath",
-    "level": 1,
-    "class": "Druid",
+    "name": "Sirius",
+    "level": 16,
+    "class": "Fighter",
     "hitdice": 0,
-    "race": "Tiefling",
+    "race": "Wood Elf",
     "abilities": {
-      "strength": 15,
-      "dexterity": 8,
-      "constitution": 13,
-      "intelligence": 17,
-      "wisdom": 15,
-      "charisma": 9
+      "strength": 11,
+      "dexterity": 20,
+      "constitution": 17,
+      "intelligence": 11,
+      "wisdom": 17,
+      "charisma": 8
     },
     "combat_skills": {
-      "hp": 1,
-      "max_hp": 1,
-      "ac": 9,
-      "speed": 30
+      "hp": 41,
+      "max_hp": 154,
+      "ac": 17,
+      "speed": 35
     },
-    "equipment": [],
+    "equipment": [
+      {
+        "name": "M16",
+        "range": 150,
+        "hitdie_bonus": 12,
+        "amount": 1,
+        "description": "",
+        "damage": "2d12+5",
+        "notes": "automatic_shot: 5d12+5"
+      },
+      {
+        "name": "Longbow",
+        "range": 100,
+        "hitdie_bonus": 12,
+        "amount": 1,
+        "description": "",
+        "damage": "1d8+5",
+        "notes": ""
+      },
+      {
+        "name": "KRABER",
+        "range": 200,
+        "hitdie_bonus": 12,
+        "amount": 1,
+        "description": "",
+        "damage": "3d12+5",
+        "notes": ""
+      },
+      {
+        "name": "Tower Shield",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 1,
+        "description": "+3 AC",
+        "damage": "",
+        "notes": "80 lbs"
+      },
+      {
+        "name": "Shotgun",
+        "range": 70,
+        "hitdie_bonus": 12,
+        "amount": 1,
+        "description": "",
+        "damage": "sam will tell you",
+        "notes": ""
+      },
+      {
+        "name": "Arrows",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 68,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      },
+      {
+        "name": "Heavy Bullets",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 44,
+        "description": "",
+        "damage": "",
+        "notes": "33 spent"
+      },
+      {
+        "name": "Shotgun Shell",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 5,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      },
+      {
+        "name": "20 mag",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 2,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      },
+      {
+        "name": "Medium Bullet",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 4,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      },
+      {
+        "name": "Scrap",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 17,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      },
+      {
+        "name": "Gold",
+        "range": 0,
+        "hitdie_bonus": 0,
+        "amount": 0,
+        "description": "",
+        "damage": "",
+        "notes": ""
+      }
+    ],
     "skills": {
       "acrobatics": 8,
-      "animal handling": 15,
+      "animal_handling": 0,
       "arcana": 17,
       "athletics": 15,
       "deception": 9,
@@ -127,10 +236,54 @@
       "performance": 9,
       "persuasion": 9,
       "religion": 17,
-      "slight of hand": 8,
+      "slight_of_hand": 0,
       "stealth": 8,
       "survival": 15
     },
-    "background": "Entertainer"
+    "background": "Acolyte\n\nYOU HAVE THE GOD FEAT:\n\nhttp://dnd5e.wikidot.com/feat:sharpshooter"
+  },
+  "2": {
+    "id": 2,
+    "name": "Theriatis Paelynn",
+    "level": 1,
+    "class": "Sorcerer",
+    "hitdice": 0,
+    "race": "Dragonborn",
+    "abilities": {
+      "strength": 12,
+      "dexterity": 18,
+      "constitution": 16,
+      "intelligence": 13,
+      "wisdom": 12,
+      "charisma": 13
+    },
+    "combat_skills": {
+      "hp": 3,
+      "max_hp": 3,
+      "ac": 14,
+      "speed": 30
+    },
+    "equipment": [],
+    "skills": {
+      "acrobatics": 18,
+      "animal handling": 12,
+      "arcana": 13,
+      "athletics": 12,
+      "deception": 13,
+      "history": 13,
+      "insight": 12,
+      "intimidation": 13,
+      "investigation": 13,
+      "medicine": 12,
+      "nature": 13,
+      "perception": 12,
+      "performance": 13,
+      "persuasion": 13,
+      "religion": 13,
+      "slight of hand": 18,
+      "stealth": 18,
+      "survival": 12
+    },
+    "background": "Hermit"
   }
 }
